@@ -103,7 +103,16 @@ class Pipeline:
     def detokenize(self, generate_id):
         return self.tokenizer.batch_decode(generate_id, skip_special_tokens=True, clean_up_tokenization_spaces=True)
 
-    def likelihood(self, batch):
+    def likelihood(self, batch: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate the likelihood of the batch.
+
+        Args:
+            batch (torch.Tensor): A tensor of shape (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: A tensor of shape (batch_size,).
+        """
         encoded_batch = self.tokenize(batch)
         attention_mask = encoded_batch.attention_mask
         outputs = self.model(**encoded_batch)
@@ -113,7 +122,16 @@ class Pipeline:
         avg_likelihood = unmasked_scores.sum(1) / attention_mask.sum(1)
         return avg_likelihood
 
-    def embedding(self, batch):
+    def embedding(self, batch: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate the embedding of the batch.
+
+        Args:
+            batch (torch.Tensor): A tensor of shape (batch_size, sequence_length).
+        
+        Returns:
+            torch.Tensor: A tensor of shape (batch_size, hidden_size).
+        """
         encoded_batch = self.tokenize(batch)
         attention_mask = encoded_batch.attention_mask.unsqueeze(-1)
         outputs = self.model(**encoded_batch)
@@ -123,7 +141,16 @@ class Pipeline:
         avg_embeddings = unmasked_embeddings.sum(1) / attention_mask.sum(1)
         return avg_embeddings
 
-    def generate(self, batch):
+    def generate(self, batch: torch.Tensor) -> torch.Tensor:
+        """
+        Generate text from the batch.
+
+        Args:
+            batch (torch.Tensor): A tensor of shape (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: A tensor of shape (batch_size, sequence_length).
+        """
         encoded_batch = self.tokenize(batch)
         generate_id = self.model.generate(encoded_batch.input_ids, max_length=self.output_length, num_beams=self.num_beams)
         generate_text = self.detokenize(generate_id)
