@@ -158,6 +158,8 @@ class Pipeline:
 
 
 def to_numpy(tensor):
+    if tensor.dtype == torch.bfloat16: # bfloat16 is not supported by numpy
+        tensor = tensor.to(torch.float16)
     return tensor.cpu().detach().numpy()
 
 
