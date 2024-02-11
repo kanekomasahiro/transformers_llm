@@ -117,7 +117,8 @@ class Pipeline:
         attention_mask = encoded_batch.attention_mask
         outputs = self.model(**encoded_batch)
         logits = outputs.logits
-        all_scores = logits.gather(-1, encoded_batch.input_ids.unsqueeze(-1)).squeeze()
+        log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
+        all_scores = log_probs.gather(-1, encoded_batch.input_ids.unsqueeze(-1)).squeeze()
         unmasked_scores = all_scores * attention_mask
         avg_likelihood = unmasked_scores.sum(1) / attention_mask.sum(1)
         return avg_likelihood
